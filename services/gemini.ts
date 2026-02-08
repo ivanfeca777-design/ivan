@@ -1,7 +1,8 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// Always use const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const getAIOrientation = async (userQuery: string) => {
   try {
@@ -20,6 +21,7 @@ export const getAIOrientation = async (userQuery: string) => {
       },
     });
 
+    // The GenerateContentResponse object features a text property that directly returns the string output.
     return response.text || "Desculpe, não consegui processar sua solicitação no momento. Por favor, tente novamente.";
   } catch (error) {
     console.error("Gemini API Error:", error);

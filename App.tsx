@@ -25,7 +25,10 @@ import {
   CheckCircle2,
   FileText,
   UserCircle,
-  Stethoscope
+  Stethoscope,
+  Lock,
+  ArrowRight,
+  Github
 } from 'lucide-react';
 import { ServiceCategory, Service, Message, Appointment, PsychologicalTest } from './types';
 import { getAIOrientation } from './services/gemini';
@@ -36,59 +39,228 @@ const WHATSAPP_LINK = `https://wa.me/55${WHATSAPP_NUMBER}`;
 const FORMATTED_PHONE = "(92) 92117-9574";
 const CLINIC_EMAIL = "evaristofecayamalej@gmail.com";
 
+type ViewMode = 'WELCOME' | 'LOGIN' | 'APP';
+
 // --- Helper Components ---
 
-const Logo: React.FC<{ size?: 'sm' | 'lg', scrolled?: boolean }> = ({ size = 'sm', scrolled }) => (
-  <div className="flex items-center gap-3 group cursor-pointer">
-    <div className={`${size === 'lg' ? 'w-12 h-12' : 'w-10 h-10'} bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-200 group-hover:rotate-6 transition-transform duration-300`}>
-      <Brain size={size === 'lg' ? 28 : 22} strokeWidth={2.5} />
-    </div>
-    <div className="flex flex-col">
-      <span className={`${size === 'lg' ? 'text-3xl' : 'text-2xl'} font-bold tracking-tight leading-none ${scrolled || size === 'lg' ? 'text-slate-900' : 'text-indigo-950'}`}>
-        Consulfeca
-      </span>
-      <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${scrolled || size === 'lg' ? 'text-indigo-600' : 'text-indigo-800'}`}>
-        Psicologia Clínica
-      </span>
-    </div>
-  </div>
-);
+const Logo: React.FC<{ size?: 'sm' | 'md' | 'lg', scrolled?: boolean, light?: boolean }> = ({ size = 'sm', scrolled, light }) => {
+  const sizeClasses = {
+    sm: 'w-10 h-10',
+    md: 'w-14 h-14',
+    lg: 'w-20 h-20'
+  };
+  const iconSizes = {
+    sm: 22,
+    md: 28,
+    lg: 40
+  };
+  const textClasses = {
+    sm: 'text-2xl',
+    md: 'text-3xl',
+    lg: 'text-5xl'
+  };
 
-const SectionTitle: React.FC<{ title: string; subtitle?: string; light?: boolean }> = ({ title, subtitle, light }) => (
-  <div className="text-center mb-8">
-    <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${light ? 'text-white' : 'text-slate-800'}`}>{title}</h2>
-    {subtitle && <p className={`max-w-2xl mx-auto ${light ? 'text-slate-200' : 'text-slate-600'}`}>{subtitle}</p>}
-    <div className={`h-1 w-20 mx-auto mt-6 rounded-full ${light ? 'bg-white' : 'bg-indigo-600'}`}></div>
+  return (
+    <div className="flex items-center gap-3 group cursor-pointer">
+      <div className={`${sizeClasses[size]} bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-200 group-hover:rotate-6 transition-transform duration-300`}>
+        <Brain size={iconSizes[size]} strokeWidth={2.5} />
+      </div>
+      <div className="flex flex-col">
+        <span className={`${textClasses[size]} font-bold tracking-tight leading-none ${light ? 'text-white' : (scrolled || size !== 'sm' ? 'text-slate-900' : 'text-indigo-950')}`}>
+          Consulfeca
+        </span>
+        <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${light ? 'text-indigo-200' : (scrolled || size !== 'sm' ? 'text-indigo-600' : 'text-indigo-800')}`}>
+          Psicologia Clínica
+        </span>
+      </div>
+    </div>
+  );
+};
+
+// --- Missing Components: SectionTitle and ServiceCard ---
+
+const SectionTitle: React.FC<{ title: string, subtitle: string }> = ({ title, subtitle }) => (
+  <div className="text-center mb-16">
+    <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4 font-serif">{title}</h2>
+    <div className="w-24 h-1.5 bg-indigo-600 mx-auto rounded-full mb-6"></div>
+    <p className="text-slate-600 max-w-2xl mx-auto text-lg">{subtitle}</p>
   </div>
 );
 
 const ServiceCard: React.FC<{ service: Service }> = ({ service }) => {
-  const IconMap: Record<string, any> = {
-    'Individual': Heart,
-    'Infantil': Baby,
-    'Família & Casal': Users,
-    'Testes Online': ClipboardCheck,
-    'Treinamento': BookOpen,
+  const icons: Record<string, React.ElementType> = {
+    heart: Heart,
+    baby: Baby,
+    users: Users,
+    clipboard: ClipboardCheck,
+    book: BookOpen,
+    brain: Brain
   };
-  const Icon = IconMap[service.category] || Brain;
+  
+  const Icon = icons[service.icon] || Heart;
 
   return (
-    <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-slate-100 group flex flex-col h-full">
-      <div className="w-14 h-14 bg-indigo-50 rounded-xl flex items-center justify-center mb-6 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-        <Icon size={28} />
+    <div className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-100/50 hover:shadow-2xl hover:-translate-y-2 transition-all group">
+      <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 mb-8 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+        <Icon size={32} />
       </div>
-      <h3 className="text-xl font-bold mb-3 text-slate-800">{service.title}</h3>
-      <p className="text-slate-600 leading-relaxed mb-6 flex-grow">{service.description}</p>
-      <a href="#agendamento" className="flex items-center text-indigo-600 font-semibold text-sm hover:underline mt-auto">
-        Agendar agora <ChevronRight size={16} className="ml-1" />
+      <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-3 block">{service.category}</span>
+      <h3 className="text-2xl font-bold text-slate-900 mb-4 font-serif">{service.title}</h3>
+      <p className="text-slate-600 leading-relaxed mb-8">{service.description}</p>
+      <a href="#agendamento" className="inline-flex items-center gap-2 text-indigo-600 font-bold group-hover:gap-3 transition-all">
+        Saiba Mais <ChevronRight size={18} />
       </a>
+    </div>
+  );
+};
+
+// --- Screen Components ---
+
+const WelcomeScreen: React.FC<{ onStart: () => void }> = ({ onStart }) => (
+  <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center relative overflow-hidden px-6">
+    <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(#4f46e5_1px,transparent_1px)] [background-size:40px_40px]"></div>
+    <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-100 rounded-full blur-[120px] opacity-50"></div>
+    <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-pink-100 rounded-full blur-[120px] opacity-50"></div>
+    
+    <div className="relative z-10 text-center flex flex-col items-center max-w-2xl">
+      <div className="mb-12 animate-bounce">
+        <Logo size="lg" />
+      </div>
+      <h1 className="text-4xl md:text-6xl font-bold text-slate-900 mb-6 font-serif leading-tight">
+        Bem-vindo à sua jornada de <span className="text-indigo-600 italic">transformação</span>.
+      </h1>
+      <p className="text-lg text-slate-600 mb-12 leading-relaxed">
+        Na Consulfeca, acreditamos que a saúde mental é a base para uma vida plena. Oferecemos um espaço seguro para o seu crescimento pessoal e profissional.
+      </p>
+      <button 
+        onClick={onStart}
+        className="group relative bg-indigo-600 text-white px-10 py-5 rounded-full font-bold text-xl hover:bg-indigo-700 transition-all shadow-2xl shadow-indigo-200 flex items-center gap-3"
+      >
+        Começar Jornada
+        <ArrowRight className="group-hover:translate-x-1 transition-transform" />
+      </button>
+      
+      <div className="mt-16 flex items-center gap-8 text-slate-400">
+        <div className="flex items-center gap-2">
+          <CheckCircle2 size={16} className="text-indigo-500" />
+          <span className="text-sm font-medium">Ética Profissional</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <CheckCircle2 size={16} className="text-indigo-500" />
+          <span className="text-sm font-medium">Inovação Clínica</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <CheckCircle2 size={16} className="text-indigo-500" />
+          <span className="text-sm font-medium">Foco no Paciente</span>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const LoginScreen: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      onLogin();
+    }, 1200);
+  };
+
+  return (
+    <div className="min-h-screen bg-indigo-50 flex items-center justify-center p-6 relative">
+      <div className="absolute top-0 left-0 w-full h-full opacity-30 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+      
+      <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl overflow-hidden relative z-10 border border-white">
+        <div className="bg-indigo-600 p-8 text-white text-center">
+          <div className="flex justify-center mb-4">
+            <Brain size={48} className="text-indigo-200" />
+          </div>
+          <h2 className="text-2xl font-bold font-serif italic">Portal Consulfeca</h2>
+          <p className="text-indigo-100 text-sm opacity-80 mt-1">Acesse sua área restrita</p>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="p-8 space-y-6">
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">E-mail</label>
+            <div className="relative">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input 
+                required
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="exemplo@gmail.com"
+                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none"
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Senha</label>
+              <button type="button" className="text-xs font-bold text-indigo-600 hover:underline">Esqueceu?</button>
+            </div>
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input 
+                required
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none"
+              />
+            </div>
+          </div>
+          
+          <button 
+            type="submit"
+            disabled={loading}
+            className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 flex items-center justify-center gap-3"
+          >
+            {loading ? (
+              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            ) : 'Entrar na Conta'}
+          </button>
+          
+          <div className="relative py-4">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-100"></div></div>
+            <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-slate-400 font-bold">Ou entrar com</span></div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <button type="button" className="flex items-center justify-center gap-2 py-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+              <img src="https://www.google.com/favicon.ico" className="w-4 h-4" alt="Google" />
+              <span className="text-sm font-bold text-slate-600">Google</span>
+            </button>
+            <button type="button" className="flex items-center justify-center gap-2 py-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+              <Facebook className="text-blue-600" size={18} />
+              <span className="text-sm font-bold text-slate-600">Facebook</span>
+            </button>
+          </div>
+          
+          <p className="text-center text-sm text-slate-500">
+            Ainda não tem conta? <button type="button" className="text-indigo-600 font-bold hover:underline">Solicitar Acesso</button>
+          </p>
+        </form>
+      </div>
+      
+      <div className="absolute bottom-6 text-center w-full">
+        <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Ambiente Clínico Seguro © Consulfeca</p>
+      </div>
     </div>
   );
 };
 
 // --- Main Components ---
 
-const Navbar = () => {
+const Navbar: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -120,6 +292,13 @@ const Navbar = () => {
               {link.name}
             </a>
           ))}
+          <div className="h-6 w-px bg-slate-200 mx-2"></div>
+          <button 
+            onClick={onLogout}
+            className="flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-red-500 transition-colors"
+          >
+            Sair
+          </button>
           <a href="#agendamento" className="bg-indigo-600 text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">
             Marcar Consulta
           </a>
@@ -140,6 +319,7 @@ const Navbar = () => {
                 {link.name}
               </a>
             ))}
+            <button onClick={onLogout} className="text-lg font-medium text-red-500 py-2 text-left">Sair</button>
             <a href="#agendamento" onClick={() => setIsOpen(false)} className="bg-indigo-600 text-white text-center py-4 rounded-xl font-bold mt-4">
               Marcar Consulta
             </a>
@@ -150,7 +330,7 @@ const Navbar = () => {
   );
 };
 
-const App: React.FC = () => {
+const MainApp: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const [chatOpen, setChatOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [messages, setMessages] = useState<Message[]>([
@@ -218,16 +398,9 @@ const App: React.FC = () => {
   const handleAppointmentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    
-    // Simulate API Call / Sending Email logic
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    console.log(`Sending appointment notification to ${CLINIC_EMAIL}:`, appointment);
-    
     setSubmitting(false);
     setSubmitted(true);
-    
-    // Auto reset after 5 seconds
     setTimeout(() => {
       setSubmitted(false);
       setAppointment({ name: '', email: '', service: 'Psicoterapia Individual', date: '', time: '', notes: '' });
@@ -236,14 +409,13 @@ const App: React.FC = () => {
 
   const handleTestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`Solicitação do teste ${selectedTest?.acronym} enviada para o clínico (${CLINIC_EMAIL}). Você receberá o link de acesso no e-mail ${testFormData.email}.`);
+    alert(`Solicitação do teste ${selectedTest?.acronym} enviada para o clínico (${CLINIC_EMAIL}).`);
     setSelectedTest(null);
-    setTestFormData({ name: '', email: '', age: '' });
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
+    <>
+      <Navbar onLogout={onLogout} />
 
       {/* Hero Section */}
       <section id="home" className="pt-32 pb-20 md:pt-48 md:pb-32 bg-gradient-to-br from-indigo-50 via-white to-slate-50 overflow-hidden">
@@ -285,21 +457,18 @@ const App: React.FC = () => {
             title="Especialidades & Serviços" 
             subtitle="Oferecemos suporte emocional para todas as fases da vida, utilizando métodos baseados em evidências."
           />
-          
-          {/* Search Bar Region */}
           <div className="max-w-xl mx-auto mb-12 relative group">
             <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-600 transition-colors">
               <Search size={20} />
             </div>
             <input 
               type="text" 
-              placeholder="O que você está procurando? (ex: ansiedade, infantil, treinamento...)"
+              placeholder="O que você está procurando? (ex: ansiedade, infantil...)"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-12 py-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all text-slate-700 shadow-sm"
             />
           </div>
-
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredServices.map(service => (
               <ServiceCard key={service.id} service={service} />
@@ -317,7 +486,6 @@ const App: React.FC = () => {
             <h2 className="text-4xl md:text-5xl font-bold mt-4 mb-4 font-serif">Portal de Testes Online</h2>
             <p className="text-slate-300 max-w-2xl mx-auto">Selecione o teste solicitado pelo seu terapeuta para iniciar a aplicação digital segura.</p>
           </div>
-
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {psychologicalTests.map(test => (
               <div key={test.id} className="bg-slate-800 p-8 rounded-3xl border border-slate-700 hover:border-indigo-500 transition-all group relative overflow-hidden">
@@ -330,10 +498,7 @@ const App: React.FC = () => {
                 </div>
                 <h3 className="text-xl font-bold mb-2">{test.name}</h3>
                 <p className="text-sm text-slate-400 mb-6 leading-relaxed">{test.description}</p>
-                <button 
-                  onClick={() => setSelectedTest(test)}
-                  className="w-full bg-slate-700 hover:bg-indigo-600 text-white py-3 rounded-xl font-bold text-sm transition-all"
-                >
+                <button onClick={() => setSelectedTest(test)} className="w-full bg-slate-700 hover:bg-indigo-600 text-white py-3 rounded-xl font-bold text-sm transition-all">
                   Iniciar Teste
                 </button>
               </div>
@@ -341,75 +506,24 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Test Modal */}
         {selectedTest && (
           <div className="fixed inset-0 z-[100] bg-slate-950/90 flex items-center justify-center p-6 backdrop-blur-sm">
             <div className="bg-white text-slate-900 w-full max-w-lg rounded-[2.5rem] p-10 relative shadow-2xl animate-in zoom-in-95">
-              <button onClick={() => setSelectedTest(null)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 p-2">
-                <X size={24} />
-              </button>
+              <button onClick={() => setSelectedTest(null)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 p-2"><X size={24} /></button>
               <div className="flex items-center gap-4 mb-8">
-                <div className="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600">
-                  <ClipboardCheck size={28} />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold font-serif">{selectedTest.acronym}</h3>
-                  <p className="text-sm text-slate-500">{selectedTest.name}</p>
-                </div>
+                <div className="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600"><ClipboardCheck size={28} /></div>
+                <div><h3 className="text-2xl font-bold font-serif">{selectedTest.acronym}</h3><p className="text-sm text-slate-500">{selectedTest.name}</p></div>
               </div>
-              
               <form onSubmit={handleTestSubmit} className="space-y-5">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Nome do Paciente</label>
-                  <input 
-                    required 
-                    type="text" 
-                    value={testFormData.name}
-                    onChange={e => setTestFormData({...testFormData, name: e.target.value})}
-                    placeholder="Nome completo" 
-                    className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-100 outline-none" 
-                  />
+                  <label className="text-xs font-bold text-slate-500 uppercase">Nome Completo</label>
+                  <input required type="text" className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-100 outline-none" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase">Idade</label>
-                    <input 
-                      required 
-                      type="number" 
-                      value={testFormData.age}
-                      onChange={e => setTestFormData({...testFormData, age: e.target.value})}
-                      placeholder="Anos" 
-                      className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-100 outline-none" 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase">Gênero</label>
-                    <select className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-100 outline-none appearance-none">
-                      <option>Feminino</option>
-                      <option>Masculino</option>
-                      <option>Outro</option>
-                    </select>
-                  </div>
+                  <div className="space-y-2"><label className="text-xs font-bold text-slate-500 uppercase">Idade</label><input required type="number" className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-100 outline-none" /></div>
+                  <div className="space-y-2"><label className="text-xs font-bold text-slate-500 uppercase">Gênero</label><select className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-100 outline-none"><option>Feminino</option><option>Masculino</option><option>Outro</option></select></div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">E-mail para Relatório</label>
-                  <input 
-                    required 
-                    type="email" 
-                    value={testFormData.email}
-                    onChange={e => setTestFormData({...testFormData, email: e.target.value})}
-                    placeholder="email@exemplo.com" 
-                    className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-100 outline-none" 
-                  />
-                </div>
-                <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl">
-                  <p className="text-xs text-indigo-700 leading-relaxed italic">
-                    Ao clicar em continuar, os dados de identificação serão enviados para o clínico responsável e você será redirecionado para a plataforma de aplicação.
-                  </p>
-                </div>
-                <button type="submit" className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100">
-                  Continuar para Aplicação
-                </button>
+                <button type="submit" className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100">Iniciar Aplicação</button>
               </form>
             </div>
           </div>
@@ -423,137 +537,27 @@ const App: React.FC = () => {
             <div className="md:col-span-2 bg-indigo-600 p-12 text-white flex flex-col justify-between">
               <div>
                 <h2 className="text-3xl font-bold mb-6 font-serif">Agende seu horário</h2>
-                <p className="text-indigo-100 mb-10 leading-relaxed">
-                  Escolha o melhor canal de atendimento e agende sua primeira sessão ou avaliação. Suas informações são enviadas diretamente para {CLINIC_EMAIL}.
-                </p>
+                <p className="text-indigo-100 mb-10 leading-relaxed">Escolha o melhor canal e agende sua primeira sessão. Suas informações são enviadas diretamente para {CLINIC_EMAIL}.</p>
                 <div className="space-y-6">
-                  <a href={`tel:${WHATSAPP_NUMBER}`} className="flex items-center gap-4 hover:bg-white/10 p-2 -ml-2 rounded-xl transition-colors">
-                    <div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center">
-                      <Phone size={18} />
-                    </div>
-                    <span>{FORMATTED_PHONE}</span>
-                  </a>
-                  <a href={`mailto:${CLINIC_EMAIL}`} className="flex items-center gap-4 hover:bg-white/10 p-2 -ml-2 rounded-xl transition-colors overflow-hidden">
-                    <div className="w-10 h-10 bg-indigo-500 flex-shrink-0 rounded-full flex items-center justify-center">
-                      <Mail size={18} />
-                    </div>
-                    <span className="truncate">{CLINIC_EMAIL}</span>
-                  </a>
-                  <div className="flex items-center gap-4 p-2 -ml-2">
-                    <div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center">
-                      <MapPin size={18} />
-                    </div>
-                    <span>Av. Paulista, 1000 - São Paulo, SP</span>
-                  </div>
+                  <a href={`tel:${WHATSAPP_NUMBER}`} className="flex items-center gap-4 hover:bg-white/10 p-2 -ml-2 rounded-xl transition-colors"><div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center"><Phone size={18} /></div><span>{FORMATTED_PHONE}</span></a>
+                  <a href={`mailto:${CLINIC_EMAIL}`} className="flex items-center gap-4 hover:bg-white/10 p-2 -ml-2 rounded-xl transition-colors overflow-hidden"><div className="w-10 h-10 bg-indigo-500 flex-shrink-0 rounded-full flex items-center justify-center"><Mail size={18} /></div><span className="truncate">{CLINIC_EMAIL}</span></a>
                 </div>
               </div>
-              <div className="mt-12 p-6 bg-indigo-700/50 rounded-2xl">
-                <p className="text-sm italic font-light">"O primeiro passo para a mudança é a coragem de ser visto."</p>
-              </div>
             </div>
-            
             <div className="md:col-span-3 p-12 flex items-center">
               {submitted ? (
                 <div className="w-full text-center py-12 animate-in zoom-in-95">
-                  <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <CheckCircle2 size={48} />
-                  </div>
+                  <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6"><CheckCircle2 size={48} /></div>
                   <h3 className="text-3xl font-bold text-slate-800 mb-4 font-serif">Solicitação Enviada!</h3>
-                  <p className="text-slate-600 mb-8 max-w-xs mx-auto">
-                    Recebemos seus dados. Entraremos em contato em breve através do e-mail informado para confirmar o agendamento.
-                  </p>
-                  <button 
-                    onClick={() => setSubmitted(false)}
-                    className="text-indigo-600 font-bold hover:underline"
-                  >
-                    Agendar outro horário
-                  </button>
+                  <button onClick={() => setSubmitted(false)} className="text-indigo-600 font-bold hover:underline">Agendar outro horário</button>
                 </div>
               ) : (
                 <form className="space-y-6 w-full" onSubmit={handleAppointmentSubmit}>
                   <div className="grid sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-slate-700">Nome Completo</label>
-                      <input 
-                        required
-                        type="text" 
-                        value={appointment.name}
-                        onChange={e => setAppointment({...appointment, name: e.target.value})}
-                        placeholder="Seu nome" 
-                        className="w-full px-5 py-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all" 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-slate-700">E-mail</label>
-                      <input 
-                        required
-                        type="email" 
-                        value={appointment.email}
-                        onChange={e => setAppointment({...appointment, email: e.target.value})}
-                        placeholder="email@exemplo.com" 
-                        className="w-full px-5 py-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all" 
-                      />
-                    </div>
+                    <div className="space-y-2"><label className="text-sm font-bold text-slate-700">Nome</label><input required type="text" className="w-full px-5 py-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600/20" /></div>
+                    <div className="space-y-2"><label className="text-sm font-bold text-slate-700">E-mail</label><input required type="email" className="w-full px-5 py-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600/20" /></div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">Serviço de Interesse</label>
-                    <select 
-                      value={appointment.service}
-                      onChange={e => setAppointment({...appointment, service: e.target.value})}
-                      className="w-full px-5 py-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all bg-white"
-                    >
-                      <option>Psicoterapia Individual</option>
-                      <option>Terapia Infantil</option>
-                      <option>Terapia de Casal</option>
-                      <option>Teste Psicológico Online</option>
-                      <option>Treinamento / Mentoria</option>
-                    </select>
-                  </div>
-                  <div className="grid sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-slate-700">Data Preferencial</label>
-                      <input 
-                        required
-                        type="date" 
-                        value={appointment.date}
-                        onChange={e => setAppointment({...appointment, date: e.target.value})}
-                        className="w-full px-5 py-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all" 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-slate-700">Horário</label>
-                      <input 
-                        required
-                        type="time" 
-                        value={appointment.time}
-                        onChange={e => setAppointment({...appointment, time: e.target.value})}
-                        className="w-full px-5 py-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all" 
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">Mensagem (opcional)</label>
-                    <textarea 
-                      rows={4} 
-                      value={appointment.notes}
-                      onChange={e => setAppointment({...appointment, notes: e.target.value})}
-                      placeholder="Como podemos ajudar?" 
-                      className="w-full px-5 py-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all resize-none"
-                    ></textarea>
-                  </div>
-                  <button 
-                    disabled={submitting}
-                    type="submit" 
-                    className="w-full bg-indigo-600 text-white py-5 rounded-xl font-bold text-lg hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 disabled:opacity-70 flex items-center justify-center gap-3"
-                  >
-                    {submitting ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        Processando...
-                      </>
-                    ) : 'Confirmar Agendamento'}
-                  </button>
-                  <p className="text-[10px] text-slate-400 text-center uppercase tracking-widest font-bold">As notificações serão enviadas para evaristofecayamalej@gmail.com</p>
+                  <button disabled={submitting} type="submit" className="w-full bg-indigo-600 text-white py-5 rounded-xl font-bold text-lg hover:bg-indigo-700 transition-all shadow-xl">{submitting ? 'Processando...' : 'Confirmar Agendamento'}</button>
                 </form>
               )}
             </div>
@@ -565,132 +569,65 @@ const App: React.FC = () => {
       <footer className="bg-slate-50 border-t border-slate-200 pt-20 pb-10">
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-4 gap-12 mb-16">
-            <div className="col-span-2">
-              <Logo size="lg" />
-              <p className="text-slate-500 max-w-sm leading-relaxed mt-6">
-                Consultório de psicologia especializado em acolhimento clínico, avaliações tecnológicas e treinamento humano. Ética e ciência a serviço da sua mente.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-bold text-slate-800 mb-6 font-serif">Contato Direto</h4>
-              <ul className="space-y-4 text-slate-500 text-sm">
-                <li className="flex items-center gap-2"><Phone size={14} className="text-indigo-600" /> {FORMATTED_PHONE}</li>
-                <li className="flex items-center gap-2"><Mail size={14} className="text-indigo-600" /> <span className="truncate">{CLINIC_EMAIL}</span></li>
-                <li className="flex items-center gap-2"><MapPin size={14} className="text-indigo-600" /> São Paulo - SP</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-slate-800 mb-6 font-serif">Redes Sociais</h4>
+            <div className="col-span-2"><Logo size="lg" /></div>
+            <div><h4 className="font-bold text-slate-800 mb-6 font-serif">Redes Sociais</h4>
               <div className="flex gap-4">
-                <a 
-                  href={WHATSAPP_LINK} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="w-10 h-10 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-emerald-500 hover:bg-emerald-50 hover:border-emerald-500 transition-all cursor-pointer shadow-sm"
-                  title="WhatsApp"
-                >
-                  <MessageSquareText size={20} />
-                </a>
-                <a href="#" className="w-10 h-10 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-blue-600 hover:bg-blue-50 shadow-sm" title="Facebook"><Facebook size={20} /></a>
-                <a href="#" className="w-10 h-10 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-pink-600 hover:bg-pink-50 shadow-sm" title="Instagram"><Instagram size={20} /></a>
-                <a href="#" className="w-10 h-10 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-red-600 hover:bg-red-50 shadow-sm" title="YouTube"><Youtube size={20} /></a>
+                <a href={WHATSAPP_LINK} className="w-10 h-10 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-emerald-500 shadow-sm"><MessageSquareText size={20} /></a>
+                <a href="#" className="w-10 h-10 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-blue-600 shadow-sm"><Facebook size={20} /></a>
+                <a href="#" className="w-10 h-10 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-pink-600 shadow-sm"><Instagram size={20} /></a>
+                <a href="#" className="w-10 h-10 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-red-600 shadow-sm"><Youtube size={20} /></a>
               </div>
             </div>
           </div>
           <div className="pt-8 border-t border-slate-200 text-center text-sm text-slate-400">
-            <p>&copy; {new Date().getFullYear()} Consulfeca Psicologia Clínica. Registros e Mensagens: {CLINIC_EMAIL}</p>
+            <p>&copy; {new Date().getFullYear()} Consulfeca Psicologia Clínica. {CLINIC_EMAIL}</p>
           </div>
         </div>
       </footer>
 
-      {/* Floating Buttons Container */}
+      {/* Floating Buttons */}
       <div className="fixed bottom-6 right-6 z-[60] flex flex-col gap-4">
-        {/* WhatsApp FAB */}
-        <a 
-          href={WHATSAPP_LINK}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-16 h-16 bg-emerald-500 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all hover:bg-emerald-600 group relative"
-        >
-          <div className="absolute -left-32 bg-white text-slate-800 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg opacity-0 group-hover:opacity-100 transition-opacity border border-slate-100 pointer-events-none whitespace-nowrap">
-            Falar no WhatsApp
-          </div>
+        <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="w-16 h-16 bg-emerald-500 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all hover:bg-emerald-600 group relative">
           <MessageSquareText size={30} />
         </a>
-
-        {/* AI Assistant FAB */}
         <div className="relative">
           {!chatOpen ? (
-            <button 
-              onClick={() => setChatOpen(true)}
-              className="w-16 h-16 bg-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform animate-pulse"
-            >
-              <MessageCircle size={30} />
-            </button>
+            <button onClick={() => setChatOpen(true)} className="w-16 h-16 bg-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform animate-pulse"><MessageCircle size={30} /></button>
           ) : (
             <div className="bg-white w-[350px] h-[500px] rounded-[2rem] shadow-3xl border border-slate-100 flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 absolute bottom-0 right-0">
               <div className="bg-indigo-600 p-6 flex justify-between items-center text-white">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center">
-                    <Brain size={20} />
-                  </div>
-                  <div>
-                    <h4 className="font-bold">Assistente Consulfeca</h4>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span className="text-xs text-indigo-100">Inteligência Artificial</span>
-                    </div>
-                  </div>
-                </div>
-                <button onClick={() => setChatOpen(false)} className="text-white hover:bg-white/10 p-1 rounded-lg">
-                  <X size={20} />
-                </button>
+                <div className="flex items-center gap-3"><div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center"><Brain size={20} /></div><div><h4 className="font-bold">Assistente Consulfeca</h4></div></div>
+                <button onClick={() => setChatOpen(false)} className="text-white hover:bg-white/10 p-1 rounded-lg"><X size={20} /></button>
               </div>
-              
               <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/50">
                 {messages.map((m, i) => (
                   <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[85%] p-4 rounded-2xl text-sm ${
-                      m.role === 'user' 
-                        ? 'bg-indigo-600 text-white rounded-tr-none shadow-md shadow-indigo-100' 
-                        : 'bg-white text-slate-700 rounded-tl-none border border-slate-100 shadow-sm'
-                    }`}>
+                    <div className={`max-w-[85%] p-4 rounded-2xl text-sm ${m.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-none shadow-md shadow-indigo-100' : 'bg-white text-slate-700 rounded-tl-none border border-slate-100 shadow-sm'}`}>
                       {m.text}
                     </div>
                   </div>
                 ))}
-                {isTyping && (
-                  <div className="flex justify-start">
-                    <div className="bg-white p-4 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm flex gap-1">
-                      <div className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce"></div>
-                      <div className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                      <div className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:0.4s]"></div>
-                    </div>
-                  </div>
-                )}
               </div>
-
               <div className="p-4 bg-white border-t border-slate-100 flex items-center gap-2">
-                <input 
-                  type="text" 
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Como posso ajudar?"
-                  className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
-                />
-                <button 
-                  onClick={handleSendMessage}
-                  disabled={!input.trim()}
-                  className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center hover:bg-indigo-700 transition-colors disabled:opacity-50"
-                >
-                  <Send size={18} />
-                </button>
+                <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} placeholder="Como posso ajudar?" className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none" />
+                <button onClick={handleSendMessage} disabled={!input.trim()} className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center hover:bg-indigo-700 disabled:opacity-50"><Send size={18} /></button>
               </div>
             </div>
           )}
         </div>
       </div>
+    </>
+  );
+};
+
+const App: React.FC = () => {
+  const [view, setView] = useState<ViewMode>('WELCOME');
+
+  return (
+    <div className="min-h-screen">
+      {view === 'WELCOME' && <WelcomeScreen onStart={() => setView('LOGIN')} />}
+      {view === 'LOGIN' && <LoginScreen onLogin={() => setView('APP')} />}
+      {view === 'APP' && <MainApp onLogout={() => setView('LOGIN')} />}
     </div>
   );
 };
